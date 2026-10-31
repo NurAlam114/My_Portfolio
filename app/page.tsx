@@ -3,8 +3,52 @@
 import { useState, useEffect } from "react";
 import emailjs from "@emailjs/browser";
 
+type CategoryId = "data" | "automation";
+
+type Project = {
+  title: string;
+  tools: string[];
+  result?: string;
+  description: string;
+  badge: string;
+  github?: string;
+  // Local video: "/videos/my-demo.mp4" (file goes in public/videos/)
+  video?: string;
+  // Or a YouTube link: "https://www.youtube.com/watch?v=XXXX"
+  youtube?: string;
+  // Or a Google Drive share link (file must be shared as "Anyone with the link")
+  drive?: string;
+};
+
+const categories: { id: CategoryId; label: string; icon: string; blurb: string }[] = [
+  {
+    id: "data",
+    label: "Data Science & Analytics",
+    icon: "📊",
+    blurb: "Analysis, prediction, forecasting, and dashboards",
+  },
+  {
+    id: "automation",
+    label: "AI Automation",
+    icon: "⚡",
+    blurb: "AI workflows and agents that remove repetitive work",
+  },
+];
+
+function getYoutubeEmbedUrl(url: string) {
+  const match = url.match(/(?:youtu\.be\/|v=|embed\/|shorts\/)([\w-]{11})/);
+  return match ? `https://www.youtube.com/embed/${match[1]}?autoplay=1` : null;
+}
+
+function getDriveEmbedUrl(url: string) {
+  const match = url.match(/\/file\/d\/([\w-]+)/);
+  return match ? `https://drive.google.com/file/d/${match[1]}/preview` : null;
+}
+
 export default function NurAlamPortfolio() {
   const [showAllProjects, setShowAllProjects] = useState(false);
+  const [activeCategory, setActiveCategory] = useState<CategoryId>("data");
+  const [activeVideo, setActiveVideo] = useState<Project | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -21,6 +65,15 @@ export default function NurAlamPortfolio() {
     // Initialize EmailJS (Replace with your public key from EmailJS)
     emailjs.init("88dHqjOwNLQCECdOM");
   }, []);
+
+  useEffect(() => {
+    if (!activeVideo) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setActiveVideo(null);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [activeVideo]);
 
   const handleFormChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -95,9 +148,55 @@ export default function NurAlamPortfolio() {
       icon: "🧠",
       glow: "from-cyan-500/20 to-violet-400/10",
     },
+    {
+      title: "AI Automation",
+      // TODO: নিজের আসল tools দিয়ে বদলাও
+      items: ["n8n", "Workflow Automation", "API Integration", "LLM Prompting"],
+      icon: "⚡",
+      glow: "from-amber-500/20 to-orange-400/10",
+    },
+    {
+      title: "Agentic AI",
+      // TODO: নিজের আসল tools দিয়ে বদলাও
+      items: ["AI Agents", "Tool Calling", "Multi-step Reasoning", "RAG"],
+      icon: "🤖",
+      glow: "from-emerald-500/20 to-cyan-400/10",
+    },
+    {
+      title: "Software Testing",
+      // TODO: নিজের আসল tools দিয়ে বদলাও
+      items: ["Manual Testing", "Test Cases", "Bug Reporting", "Test Automation"],
+      icon: "🧪",
+      glow: "from-rose-500/20 to-pink-400/10",
+    },
   ];
 
-  const projects = [
+  const automationProjects: Project[] = [
+    // video: public/videos/ ফোল্ডারে mp4 রেখে "/videos/file.mp4" লেখো, অথবা youtube: "https://..." বা drive: "https://..." দাও।
+    {
+      title: "AI Sales Assistant for Facebook & Messenger",
+      tools: ["n8n", "Google Gemini", "Meta Graph API", "Google Sheets"],
+      description:
+        "An AI assistant that runs a Facebook Page and Messenger on its own. It replies 24/7 in Bangla, English, or any language, answers price, stock, and product questions from the real product list, and sends product photos on request. It also deletes spam and abusive comments and privately messages genuine buyers from the comments. Customizable for any business, product catalog, or language.",
+      result:
+        "Collects customer details, saves each order to Google Sheets, and updates stock automatically, with no manual order entry.",
+      badge: "AI Agent",
+      drive: "https://drive.google.com/file/d/1CvMGMJ5maKkuSCrWYOut-x4LLVMlUlMC/view?usp=sharing",
+    },
+    {
+      title: "AI-Powered API Monitoring System",
+      tools: ["Node.js", "Express", "MongoDB", "React", "Google Gemini"],
+      description:
+        "A full-stack monitoring system that detects API errors and anomalies, generates AI-powered alerts with Google Gemini, stores them in MongoDB, and displays real-time monitoring information through a dashboard.",
+      result:
+        "Turns API errors and anomalies into AI-generated alerts, visible in a real-time dashboard.",
+      badge: "AI Monitoring",
+      github: "https://github.com/NurAlam114/api-monitor",
+      drive: "https://drive.google.com/file/d/1Ou4DqTlrs13FmvfLCWygHLCFGvdFjH8S/view?usp=sharing",
+    },
+  ];
+
+  const dataProjects: Project[] = [
 
     {
       title: "Face Recognition Attendance System",
@@ -200,7 +299,16 @@ export default function NurAlamPortfolio() {
     },
   ];
 
-  const visibleProjects = showAllProjects ? projects : projects.slice(0, 4);
+  const projectsByCategory: Record<CategoryId, Project[]> = {
+    data: dataProjects,
+    automation: automationProjects,
+  };
+  const currentCategory = categories.find((c) => c.id === activeCategory)!;
+  const currentProjects = projectsByCategory[activeCategory];
+  const visibleProjects = showAllProjects
+    ? currentProjects
+    : currentProjects.slice(0, 4);
+  const totalProjects = Object.values(projectsByCategory).flat().length;
 
   const contactLinks = [
     {
@@ -241,7 +349,7 @@ export default function NurAlamPortfolio() {
             </div>
             <div>
               <p className="text-sm font-semibold text-white">Md. Nur Alam</p>
-              <p className="text-xs text-slate-400">Data Science Portfolio</p>
+              <p className="text-xs text-slate-400">Data • AI • Automation</p>
             </div>
           </div>
 
@@ -262,24 +370,30 @@ export default function NurAlamPortfolio() {
         >
           <div>
             <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-cyan-400/20 bg-cyan-400/10 px-4 py-2 text-xs font-medium uppercase tracking-[0.22em] text-cyan-200">
-              Open to Data Analyst & Data Science roles
+              Open to Data, AI Automation & QA roles
             </div>
 
             <h1 className="max-w-3xl text-4xl font-black tracking-tight text-white sm:text-5xl lg:text-7xl">
               Turning Data into{" "}
               <span className="bg-gradient-to-r from-cyan-300 via-blue-300 to-violet-300 bg-clip-text text-transparent">
-                Insightful Decisions
+                Intelligent Automation
               </span>
             </h1>
 
             <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-300">
               I’m <span className="font-semibold text-white">Md. Nur Alam</span>,
-              a CSE graduate focused on Python, SQL, machine learning,
-              dashboards, and practical problem solving through data.
+              a CSE graduate working across data science, AI automation,
+              agentic AI, and software testing, building smart and reliable
+              solutions to real problems.
             </p>
 
             <div className="mt-7 flex flex-wrap gap-3 text-sm text-slate-300">
-              {["Python", "SQL", "Power BI", "Machine Learning"].map((tag) => (
+              {[
+                "Data Science",
+                "AI Automation",
+                "Agentic AI",
+                "Software Testing",
+              ].map((tag) => (
                 <span
                   key={tag}
                   className="rounded-full border border-white/10 bg-white/5 px-4 py-2 backdrop-blur-sm"
@@ -332,7 +446,7 @@ export default function NurAlamPortfolio() {
 
               <div className="relative mt-4 grid grid-cols-3 gap-3 text-center text-xs">
                 <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-3">
-                  <p className="text-lg font-bold text-white">9+</p>
+                  <p className="text-lg font-bold text-white">{totalProjects}+</p>
                   <p className="text-slate-400">Projects</p>
                 </div>
                 <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-3">
@@ -367,13 +481,14 @@ export default function NurAlamPortfolio() {
               <p className="mt-5 text-base leading-8 text-slate-300">
                 I studied Computer Science & Engineering at Varendra University
                 and enjoy transforming raw data into useful stories, dashboards,
-                and predictive models. My goal is to build solutions that help
-                teams make smarter decisions.
+                and predictive models. Beyond analytics, I build AI automation
+                workflows and agentic AI systems, and I test software to make
+                sure it works reliably.
               </p>
               <p className="mt-4 text-base leading-8 text-slate-400">
                 I’m especially interested in data analysis, forecasting,
-                business dashboards, and machine learning projects that solve
-                real-world problems with clarity.
+                AI-powered automation, intelligent agents, and quality
+                assurance that solve real-world problems with clarity.
               </p>
             </div>
 
@@ -382,7 +497,7 @@ export default function NurAlamPortfolio() {
                 ["Education", "B.Sc in CSE • Varendra University"],
                 ["Languages", "Bangla (Native), English (Proficient)"],
                 ["Certification", "Data Science & Machine Learning – Ostad"],
-                ["Focus", "Data Management, Analytics, ML"],
+                ["Focus", "Data Science, AI Automation, Agentic AI, QA"],
               ].map(([label, value]) => (
                 <div
                   key={label}
@@ -406,7 +521,7 @@ export default function NurAlamPortfolio() {
               Core Skills
             </p>
             <h2 className="mt-3 text-3xl font-bold text-white sm:text-4xl">
-              Tools I use to explore, model, and present data
+              Tools I use to analyze, automate, and build with AI
             </h2>
           </div>
 
@@ -446,20 +561,79 @@ export default function NurAlamPortfolio() {
               Featured Work
             </p>
             <h2 className="mt-3 text-3xl font-bold text-white sm:text-4xl">
-              Projects built around analysis, prediction, and dashboards
+              Projects across data analytics, data science, and AI automation
             </h2>
           </div>
 
+          <div className="mb-3 flex flex-wrap gap-3">
+            {categories.map((cat) => {
+              const isActive = cat.id === activeCategory;
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => {
+                    setActiveCategory(cat.id);
+                    setShowAllProjects(false);
+                  }}
+                  aria-pressed={isActive}
+                  className={`inline-flex items-center gap-2 rounded-2xl border px-5 py-3 text-sm font-semibold transition hover:scale-[1.02] ${
+                    isActive
+                      ? "border-cyan-300/60 bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-[0_0_30px_rgba(34,211,238,0.28)]"
+                      : "border-white/15 bg-white/5 text-slate-300 hover:border-cyan-300/40 hover:bg-white/10"
+                  }`}
+                >
+                  <span>{cat.icon}</span>
+                  {cat.label}
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-[10px] ${
+                      isActive ? "bg-white/20" : "bg-white/10"
+                    }`}
+                  >
+                    {projectsByCategory[cat.id].length}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          <p className="mb-8 text-sm text-slate-400">{currentCategory.blurb}</p>
+
           <div className="grid gap-4 lg:grid-cols-2">
-            {visibleProjects.map((project) => (
+            {visibleProjects.map((project) => {
+              const hasVideo = Boolean(project.video || project.youtube || project.drive);
+              return (
               <div
-                key={project.title}
+                key={`${activeCategory}-${project.title}`}
                 className="group relative overflow-hidden rounded-[1.35rem] border border-white/20 bg-white/[0.04] p-4 shadow-lg backdrop-blur-xl transition duration-300 hover:-translate-y-1 hover:border-cyan-300/60 hover:shadow-[0_0_28px_rgba(34,211,238,0.18)]"
               >
                 <div className="absolute right-4 top-4 rounded-full border border-cyan-300/40 bg-cyan-300/10 px-2.5 py-1 text-[10px] font-medium text-cyan-200">
                   {project.badge}
                 </div>
 
+                {activeCategory !== "data" && (
+                  <button
+                    type="button"
+                    disabled={!hasVideo}
+                    onClick={() => setActiveVideo(project)}
+                    aria-label={hasVideo ? `Play demo: ${project.title}` : "Demo video coming soon"}
+                    className="group/play mb-3 flex h-24 w-full flex-col items-center justify-center gap-1 rounded-[1rem] border border-white/20 bg-[radial-gradient(circle_at_top_left,_rgba(34,211,238,0.22),_transparent_28%),linear-gradient(135deg,rgba(15,23,42,0.95),rgba(3,7,18,0.92))] enabled:cursor-pointer sm:h-28"
+                  >
+                    <span
+                      className={`flex h-11 w-11 items-center justify-center rounded-full border text-lg transition ${
+                        hasVideo
+                          ? "border-cyan-300/60 bg-cyan-400/20 text-cyan-100 group-hover/play:scale-110 group-hover/play:bg-cyan-400/30"
+                          : "border-white/15 bg-white/5 text-slate-500"
+                      }`}
+                    >
+                      ▶
+                    </span>
+                    <span className="text-[11px] text-slate-400">
+                      {hasVideo ? "Click to watch demo" : "Demo video coming soon"}
+                    </span>
+                  </button>
+                )}
+
+                {activeCategory === "data" && (
                 <div className="mb-3 h-24 rounded-[1rem] border border-white/20 bg-[radial-gradient(circle_at_top_left,_rgba(34,211,238,0.22),_transparent_28%),linear-gradient(135deg,rgba(15,23,42,0.95),rgba(3,7,18,0.92))] p-2.5 sm:h-28">
                   <div className="grid h-full grid-cols-6 gap-1.5">
                     <div className="col-span-4 rounded-lg bg-white/5 p-2">
@@ -486,6 +660,7 @@ export default function NurAlamPortfolio() {
                     </div>
                   </div>
                 </div>
+                )}
 
                 <h3 className="pr-24 text-lg font-bold text-white sm:text-xl">
                   {project.title}
@@ -506,39 +681,55 @@ export default function NurAlamPortfolio() {
                   ))}
                 </div>
 
-                <div className="mt-3 rounded-xl border border-cyan-400/25 bg-cyan-400/10 p-3">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-cyan-200">
-                    Key Result
-                  </p>
-                  <p className="mt-1 text-sm leading-5 text-slate-100">
-                    {project.result}
-                  </p>
-                </div>
+                {project.result && (
+                  <div className="mt-3 rounded-xl border border-cyan-400/25 bg-cyan-400/10 p-3">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-cyan-200">
+                      Key Result
+                    </p>
+                    <p className="mt-1 text-sm leading-5 text-slate-100">
+                      {project.result}
+                    </p>
+                  </div>
+                )}
 
-                <div className="mt-4">
-                  <a
-                    href={project.github}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex rounded-xl border border-cyan-300/40 bg-cyan-400/10 px-3.5 py-2 text-sm font-semibold text-cyan-100 transition hover:scale-[1.02] hover:bg-cyan-400/20"
-                  >
-                    GitHub Link
-                  </a>
+                <div className="mt-4 flex flex-wrap gap-3">
+                  {project.github && (
+                    <a
+                      href={project.github}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex rounded-xl border border-cyan-300/40 bg-cyan-400/10 px-3.5 py-2 text-sm font-semibold text-cyan-100 transition hover:scale-[1.02] hover:bg-cyan-400/20"
+                    >
+                      GitHub Link
+                    </a>
+                  )}
+                  {hasVideo && (
+                    <button
+                      type="button"
+                      onClick={() => setActiveVideo(project)}
+                      className="inline-flex rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 px-3.5 py-2 text-sm font-semibold text-white transition hover:scale-[1.02]"
+                    >
+                      ▶ Watch Demo
+                    </button>
+                  )}
                 </div>
 
                 <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_center,_rgba(34,211,238,0.08),_transparent_50%)] opacity-0 transition group-hover:opacity-100" />
               </div>
-            ))}
+              );
+            })}
           </div>
 
-          <div className="mt-10 flex justify-center">
-            <button
-              onClick={() => setShowAllProjects(!showAllProjects)}
-              className="rounded-2xl border border-cyan-400/40 bg-cyan-400/10 px-6 py-3 text-sm font-semibold text-cyan-100 transition hover:scale-[1.02] hover:bg-cyan-400/20"
-            >
-              {showAllProjects ? "Show Less Projects" : "Show More Projects"}
-            </button>
-          </div>
+          {currentProjects.length > 4 && (
+            <div className="mt-10 flex justify-center">
+              <button
+                onClick={() => setShowAllProjects(!showAllProjects)}
+                className="rounded-2xl border border-cyan-400/40 bg-cyan-400/10 px-6 py-3 text-sm font-semibold text-cyan-100 transition hover:scale-[1.02] hover:bg-cyan-400/20"
+              >
+                {showAllProjects ? "Show Less Projects" : "Show More Projects"}
+              </button>
+            </div>
+          )}
         </section>
 
         <section
@@ -550,12 +741,12 @@ export default function NurAlamPortfolio() {
               Contact
             </p>
             <h2 className="mt-3 text-3xl font-bold text-white">
-              Let’s build something useful with data.
+              Let’s build something useful together.
             </h2>
             <p className="mt-4 max-w-md text-base leading-8 text-slate-300">
               I’m available for short-term full-time opportunities and
-              entry-level roles related to data analysis, data management, and
-              data science.
+              entry-level roles related to data analysis, data science, AI
+              automation, agentic AI, and software testing.
             </p>
 
             <div className="mt-8 space-y-3">
@@ -649,6 +840,59 @@ export default function NurAlamPortfolio() {
           </div>
         </section>
       </main>
+
+      {activeVideo && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
+          onClick={() => setActiveVideo(null)}
+          role="dialog"
+          aria-modal="true"
+          aria-label={activeVideo.title}
+        >
+          <div
+            className="w-full max-w-4xl overflow-hidden rounded-2xl border border-white/15 bg-slate-950 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
+              <p className="text-sm font-semibold text-white">
+                {activeVideo.title}
+              </p>
+              <button
+                onClick={() => setActiveVideo(null)}
+                className="rounded-lg border border-white/15 px-3 py-1 text-xs text-slate-300 transition hover:bg-white/10"
+              >
+                Close ✕
+              </button>
+            </div>
+            <div className="aspect-video w-full bg-black">
+              {activeVideo.youtube && getYoutubeEmbedUrl(activeVideo.youtube) ? (
+                <iframe
+                  src={getYoutubeEmbedUrl(activeVideo.youtube)!}
+                  title={activeVideo.title}
+                  allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+                  allowFullScreen
+                  className="h-full w-full"
+                />
+              ) : activeVideo.drive && getDriveEmbedUrl(activeVideo.drive) ? (
+                <iframe
+                  src={getDriveEmbedUrl(activeVideo.drive)!}
+                  title={activeVideo.title}
+                  allow="autoplay; fullscreen"
+                  allowFullScreen
+                  className="h-full w-full"
+                />
+              ) : (
+                <video
+                  src={activeVideo.video}
+                  controls
+                  autoPlay
+                  className="h-full w-full"
+                />
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
