@@ -342,7 +342,7 @@ export default function NurAlamPortfolio() {
       </div>
 
       <nav className="sticky top-0 z-40 border-b border-white/10 bg-slate-950/70 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4 lg:px-8">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-y-3 px-6 py-4 lg:px-8">
           <div className="flex items-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-cyan-400/30 bg-white/5 text-sm font-semibold tracking-[0.25em] text-cyan-300 shadow-[0_0_30px_rgba(34,211,238,0.12)]">
               NA
@@ -353,7 +353,7 @@ export default function NurAlamPortfolio() {
             </div>
           </div>
 
-          <div className="hidden gap-8 text-sm text-slate-300 md:flex">
+          <div className="flex w-full justify-between text-xs text-slate-300 md:w-auto md:gap-8 md:text-sm">
             <a href="#home" className="transition hover:text-cyan-300">Home</a>
             <a href="#about" className="transition hover:text-cyan-300">About</a>
             <a href="#skills" className="transition hover:text-cyan-300">Skills</a>
@@ -734,7 +734,7 @@ export default function NurAlamPortfolio() {
 
         <section
           id="contact"
-          className="grid gap-6 rounded-[2rem] border border-white/10 bg-white/[0.04] p-8 shadow-xl backdrop-blur-xl lg:grid-cols-[0.9fr_1.1fr] lg:p-10"
+          className="grid grid-cols-1 gap-6 rounded-[2rem] border border-white/10 bg-white/[0.04] p-5 shadow-xl backdrop-blur-xl sm:p-8 lg:grid-cols-[0.9fr_1.1fr] lg:p-10"
         >
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.28em] text-cyan-300">
@@ -764,10 +764,10 @@ export default function NurAlamPortfolio() {
                       ? ""
                       : "noopener noreferrer"
                   }
-                  className="flex items-center justify-between rounded-2xl border border-white/10 bg-slate-950/50 px-4 py-3 transition hover:border-cyan-300/30 hover:bg-white/[0.06]"
+                  className="flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-slate-950/50 px-4 py-3 transition hover:border-cyan-300/30 hover:bg-white/[0.06]"
                 >
                   <span className="text-sm text-slate-400">{item.label}</span>
-                  <span className="text-sm font-medium text-slate-100">
+                  <span className="min-w-0 break-words text-right text-sm font-medium text-slate-100">
                     {item.value}
                   </span>
                 </a>
@@ -776,7 +776,7 @@ export default function NurAlamPortfolio() {
           </div>
 
 
-          <div className="rounded-[1.8rem] border border-white/10 bg-slate-950/60 p-6">
+          <div className="rounded-[1.8rem] border border-white/10 bg-slate-950/60 p-4 sm:p-6">
             {/* Email form with EmailJS integration */}
             <form onSubmit={handleSubmit} className="grid gap-4 sm:grid-cols-2">
               <input
@@ -804,7 +804,7 @@ export default function NurAlamPortfolio() {
                 value={formData.subject}
                 onChange={handleFormChange}
                 required
-                className="col-span-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500"
+                className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500 sm:col-span-2"
                 placeholder="Subject"
               />
 
@@ -813,13 +813,13 @@ export default function NurAlamPortfolio() {
                 value={formData.message}
                 onChange={handleFormChange}
                 required
-                className="col-span-2 min-h-[150px] rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500"
+                className="min-h-[150px] rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500 sm:col-span-2"
                 placeholder="Write your message here..."
               />
 
               {submitStatus.type && (
                 <div
-                  className={`col-span-2 rounded-2xl p-3 text-sm font-medium ${
+                  className={`rounded-2xl p-3 text-sm font-medium sm:col-span-2 ${
                     submitStatus.type === "success"
                       ? "border border-green-400/30 bg-green-400/10 text-green-200"
                       : "border border-red-400/30 bg-red-400/10 text-red-200"
@@ -832,7 +832,7 @@ export default function NurAlamPortfolio() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="col-span-2 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-[0_0_30px_rgba(34,211,238,0.22)] transition hover:scale-[1.01] disabled:scale-100 disabled:opacity-50"
+                className="rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-[0_0_30px_rgba(34,211,238,0.22)] transition hover:scale-[1.01] disabled:scale-100 disabled:opacity-50 sm:col-span-2"
               >
                 {isSubmitting ? "Sending..." : "Send Message"}
               </button>
